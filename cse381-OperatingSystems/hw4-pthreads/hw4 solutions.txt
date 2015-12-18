@@ -1,0 +1,39 @@
+Part A: Reading the code
+
+1) Briefly explain why this application would be difficult to write using multiple processes instead of threads.
+Processes don't have shared memory, two proscesses wouldn't be able to edit two different parts of the same string.
+
+2) What is the significance of 'workperformed'? How is it used?
+It is used to make sure the string is sorted in order just in case a thread is in the middle of swapping characters(critical section).
+
+3) Explain exactly what is the type of 'fp' in the following declaration: void *(*fp)(void *).
+It is a pointer to a function that accepts a prarament void* and returns void; in this particular case it is used to create another instance of run_enzyme.
+This new function is used as another thread.
+
+------------------------
+
+Part C: Follow-up questions
+
+1) Why do we not detach any of the enzyme threads? Would the program function if we detached the sleeper thread?
+Detaching threads is mainly for saving resources, in case the application does not need to wait for a thread to finish. 
+However, our program relies upon swapping in order, therefore we would not get the wanted outcome here if we were to detach.
+
+2) Why does the program use sched_yield? What happens if this is not used? Will the swap counts always be identical?
+It is used to check and see if other threads, at the same priority as that of the calling thread, are READY to run.
+If this is not used, we cannot predict the outcome of the result however, the thread count will be the same.
+
+3) Threads are cancelled if the string contains a 'C' e.g. "Cherub". Why do we not include cancelled threads when adding up the total number of swaps?
+Since those threads will no longer be running, we do not include them in the count, in order to not mess up the number of swaps needed to be made.
+
+4) What happens when a thread tries to join itself? (You may need to create a test program to try this) Does it deadlock? Or does it generate an error?
+When a tread tries to join itself, this causes deadlock, and neither thread is allowed to enter the execution phase.
+
+5) Briefly explain how the sleeper thread is implemented.
+It simply has the function sleep, used to wait for certain processes to be done so the program can function as wanted.
+
+6) Briefly explain why PTHREAD_CANCEL_ASYNCHRONOUS is used in this program.
+PTHREAD_CANCEL_ASYNCHRONOUS can be canceled at anytime. In this program, we use it to cancel threads once the task is done, as well as when 'C' is used at the beginning of a string as an input.
+
+7) Briefly explain the bug in Part B, #2 above.
+The original line #32 and #34 was unneeded, however combined the lines and moved it into the for loop.
+This is done because we needed to get all the information of every single time memory is being allocated, where before the fix: it is only recorded once.

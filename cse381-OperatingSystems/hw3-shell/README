@@ -1,0 +1,8 @@
+Our project appears to be fulling working and passes all tests
+
+We spend roughly 16 hours
+Of this, there were some issues getting memory management to work right (fixing segfaults) and we spent a while figuring out the tests weren't passing because we didn't flush stdout
+In addition, we were exiting incorrectly which also caused problems
+
+We relied primarily on snippets from Stackoverflow of other people's programs to help u understand memory management
+We used this source file to help us troubleshoot the test failing issues which led us to add flushing and update how it exists: https://github.com/onemahon/General-Programming/blob/master/homework%20projects/OperatingSystems/project1/shell.c

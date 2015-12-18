@@ -1,0 +1,245 @@
+Script started on Sun 01 Nov 2015 07:03:29 PM EST
+]0;boubinmj@ceclnx01: ~/cse381/cse-381-hw4boubinmj@ceclnx01:~/cse381/cse-381-hw4$ cat README.T[Ktxt
+Matthew Boubin
+Pob Vutisalchavakul
+Nick Venega
+
+Description:
+
+Our program takes a string input from the commandline, determines the legnth of the string, creates a thread to sort two of the string's characters alphabetically. then the program determines whether or not the next character might interfere with the sorting of the current pair, so it creates a new thread if needed to sort the latter of the orginal pair and the next character in the string.  This process is repeated until the entire string is sorted correctly.
+
+We believe that our program is entirely correct
+
+Sources:
+http://stackoverflow.com/questions/9366264/what-does-it-mean-to-join-a-thread
+http://man7.org/linux/man-pages/man3/pthread_cancel.3.html
+http://cs.mtu.edu/~shene/NSF-3/e-Book/FUNDAMENTALS/thread-management.html
+http://cboard.cprogramming.com/c-programming/113426-threads.html
+
+]0;boubinmj@ceclnx01: ~/cse381/cse-381-hw4boubinmj@ceclnx01:~/cse381/cse-381-hw4$ cat A-[K[Khw4/q[K[K
+hw4 solutions.txt  hw4.txt            
+]0;boubinmj@ceclnx01: ~/cse381/cse-381-hw4boubinmj@ceclnx01:~/cse381/cse-381-hw4$ cat hw4 smp2_tests.[K[K[K[K[K[K[K[K[K[K[K[K solution[K[K[K[K[K[K[K[K[K
+hw4 solutions.txt  hw4.txt            
+]0;boubinmj@ceclnx01: ~/cse381/cse-381-hw4boubinmj@ceclnx01:~/cse381/cse-381-hw4$ cat hw4/so[K[K[K /s[K[K[K\ solutions.txt 
+Part A: Reading the code
+
+1) Briefly explain why this application would be difficult to write using multiple processes instead of threads.
+Processes don't have shared memory, two proscesses wouldn't be able to edit two different parts of the same string.
+
+2) What is the significance of 'workperformed'? How is it used?
+It is used to make sure the string is sorted in order just in case a thread is in the middle of swapping characters(critical section).
+
+3) Explain exactly what is the type of 'fp' in the following declaration: void *(*fp)(void *).
+It is a pointer to a function that accepts a prarament void* and returns void; in this particular case it is used to create another instance of run_enzyme.
+This new function is used as another thread.
+
+------------------------
+
+Part C: Follow-up questions
+
+1) Why do we not detach any of the enzyme threads? Would the program function if we detached the sleeper thread?
+Detaching threads is mainly for saving resources, in case the application does not need to wait for a thread to finish. 
+However, our program relies upon swapping in order, therefore we would not get the wanted outcome here if we were to detach.
+
+2) Why does the program use sched_yield? What happens if this is not used? Will the swap counts always be identical?
+It is used to check and see if other threads, at the same priority as that of the calling thread, are READY to run.
+If this is not used, we cannot predict the outcome of the result however, the thread count will be the same.
+
+3) Threads are cancelled if the string contains a 'C' e.g. "Cherub". Why do we not include cancelled threads when adding up the total number of swaps?
+Since those threads will no longer be running, we do not include them in the count, in order to not mess up the number of swaps needed to be made.
+
+4) What happens when a thread tries to join itself? (You may need to create a test program to try this) Does it deadlock? Or does it generate an error?
+When a tread tries to join itself, this causes deadlock, and neither thread is allowed to enter the execution phase.
+
+5) Briefly explain how the sleeper thread is implemented.
+It simply has the function sleep, used to wait for certain processes to be done so the program can function as wanted.
+
+6) Briefly explain why PTHREAD_CANCEL_ASYNCHRONOUS is used in this program.
+PTHREAD_CANCEL_ASYNCHRONOUS can be canceled at anytime. In this program, we use it to cancel threads once the task is done, as well as when 'C' is used at the beginning of a string as an input.
+
+7) Briefly explain the bug in Part B, #2 above.
+The original line #32 and #34 was unneeded, however combined the lines and moved it into the for loop.
+This is done because we needed to get all the information of every single time memory is being allocated, where before the fix: it is only recorded once.
+]0;boubinmj@ceclnx01: ~/cse381/cse-381-hw4boubinmj@ceclnx01:~/cse381/cse-381-hw4$ cat enzyme.c 
+#include "enzyme.h"
+
+int please_quit;
+int use_yield;
+int workperformed;
+
+// The code each enzyme executes.
+void *run_enzyme(void *data) {  
+    /* This function should :
+    1. cast the void* pointer to thread_info_t*
+    2. initialize the swapcount to zero
+    3. Set the cancel type to PTHREAD_CANCEL_ASYNCHRONOUS
+    4. If the first letter of the string is a C then call pthread_cancel on this thread.
+    5. Create a while loop that only exits when please_quit is nonzero
+    6. Within this loop: if the first character of the string has an ascii value greater than the second (s[0] >s[1]) then -
+        Set workperformed=1, increment swapcount for this thread, then swap the two characters around
+        If "use_yield" is nonzero then call pthread_yield at the end of the loop.
+    7. Return a pointer to the updated structure.
+    */
+         
+    //1 
+    thread_info_t *thread = (thread_info_t*)data;
+    //2 
+    thread->swapcount = 0;
+    //3
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+    //4
+    if(strncmp(thread->string, "C", 1) == 0){ pthread_cancel(pthread_self());}
+    //5
+    while(!please_quit){
+        //6
+        if(thread->string[0] > thread->string[1]){
+            workperformed = 1;
+            thread->swapcount++;
+            char temp = thread->string[1];
+            thread->string[1] = thread->string[0];
+            thread->string[0] = temp;
+        }
+        if(use_yield) {
+	  sched_yield();
+	}	
+    }
+    return (void *)thread;
+     
+}
+
+
+
+// Make threads to sort string.
+// Returns the number of threads created.
+// There is a memory bug in this function.
+int make_enzyme_threads(pthread_t * enzymes, char *string, void *(*fp)(void *)) {
+	int i,rv,len;
+//	thread_info_t *info;
+	len = strlen(string);
+//	info = (thread_info_t *)malloc(sizeof(thread_info_t));
+
+	for(i=0;i<len-1;i++) {
+	    thread_info_t* info = (thread_info_t *)malloc(sizeof(thread_info_t));
+	    info->string = string+i;
+	    rv = pthread_create(enzymes+i,NULL,fp,info);
+	    if (rv) {
+	        fprintf(stderr,"Could not create thread %d : %s\n",
+			i,strerror(rv));
+		exit(1);
+	    }
+	}
+	return len-1;
+}
+
+
+
+
+// Join all threads at the end.
+// Returns the total number of swaps.
+int join_on_enzymes(pthread_t *threads, int n) {
+	int i;
+	int totalswapcount = 0;
+	//int whatgoeshere=0; // just to make the code compile 
+	                    // you will need to edit the code below
+	for(i=0;i<n;i++) {
+	    void *status;
+	    int rv = pthread_join(threads[i],&status);
+//	    printf("rv: %d\n", ((thread_info_t*)status)->swapcount);
+
+            if(rv) {
+	      fprintf(stderr,"Can't join thread %d:%s.\n",i,strerror(rv));
+	      continue;
+	    }
+
+	    if ((void*)status == PTHREAD_CANCELED) {
+	      continue;
+ 	    } else if (status == NULL) {
+	      printf("Thread %d did not return anything\n",i);
+	    } else {
+	      printf("Thread %d exited normally: ",i);// Don't change this line
+	      int threadswapcount = ((thread_info_t*)status)->swapcount; 
+	      // Hint - you will need to cast something.
+	      printf("%d swaps.\n",threadswapcount); // Don't change this line
+	      totalswapcount += threadswapcount;// Don't change this line
+	    }
+	}	
+	return totalswapcount;
+}
+
+/* Wait until the string is in order. Note, we need the workperformed flag just in case a thread is in the middle of swapping characters
+so that the string temporarily is in order because the swap is not complete.
+*/
+void wait_till_done(char *string, int n) {
+	int i;
+	while(1) {
+	    sched_yield();
+	    workperformed=0;
+	    for(i=0;i<n;i++) 
+	        if (string[i] > string[i+1]) {
+	            workperformed=1;
+	    	}
+	    if(workperformed==0) break;
+	}
+}
+
+void * sleeper_func(void *p) {
+	sleep( (int) p); 
+	// Actually this may return before p seconds because of signals. 
+	// See man sleep for more information
+	printf("sleeper func woke up - exiting the program\n");
+	exit(1);
+}
+
+int smp2_main(int argc, char **argv) {
+	pthread_t enzymes[MAX];
+	int n,totalswap;
+	char string[MAX];
+
+	if (argc <= 1) {
+	    fprintf(stderr,"Usage: %s <word>\n",argv[0]);
+	    exit(1);
+	}
+	strncpy(string,argv[1],MAX); // Why is this necessary? Why cant we give argv[1] directly to the thread functions?
+
+	please_quit = 0;
+	use_yield =1;
+	
+	printf("Creating threads...\n");
+	n = make_enzyme_threads(enzymes,string,run_enzyme);
+	printf("Done creating %d threads.\n",n);
+	
+	pthread_t sleeperid;
+	pthread_create(&sleeperid,NULL,sleeper_func,(void*)5);
+
+	wait_till_done(string,n);
+	please_quit = 1;
+	printf("Joining threads...\n");
+	totalswap = join_on_enzymes(enzymes, n);
+	printf("Total: %d swaps\n",totalswap);
+	printf("Sorted string: %s\n",string);
+	
+	exit(0);
+}
+
+
+
+
+]0;boubinmj@ceclnx01: ~/cse381/cse-381-hw4boubinmj@ceclnx01:~/cse381/cse-381-hw4$ make
+make: Nothing to be done for `all'.
+]0;boubinmj@ceclnx01: ~/cse381/cse-381-hw4boubinmj@ceclnx01:~/cse381/cse-381-hw4$ make te[K[K[K[K[K[K[Kmake test
+./enzyme -test -f0 all
+Running tests...
+ 1.make                ::pass
+ 2.sort                ::pass
+ 3.pleasequit1         ::pass
+ 4.pleasequit0         ::pass
+ 5.swap1               ::pass
+ 6.swap2               ::pass
+ 7.swap3               ::pass
+ 8.run_enzyme          ::pass
+ 9.join                ::pass
+10.cancel              ::pass
+
+Test Results:10 tests,10 passed,0 failed.
+]0;boubinmj@ceclnx01: ~/cse381/cse-381-hw4boubinmj@ceclnx01:~/cse381/cse-381-hw4$ 
+Script done on Sun 01 Nov 2015 07:05:03 PM EST
