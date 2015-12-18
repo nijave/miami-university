@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app
+xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+metadata-complete="false"
+version="3.1">
+
+	<servlet>
+		<servlet-name>Select</servlet-name>
+		<servlet-class>venengnj.views.StorySelect</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Select</servlet-name>
+		<url-pattern>/select/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>Read</servlet-name>
+		<servlet-class>venengnj.views.StoryReader</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Read</servlet-name>
+		<url-pattern>/read/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>API</servlet-name>
+		<servlet-class>venengnj.views.API</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>API</servlet-name>
+		<url-pattern>/rest/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>Admin</servlet-name>
+		<servlet-class>venengnj.views.Admin</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Admin</servlet-name>
+		<url-pattern>/admin/*</url-pattern>
+	</servlet-mapping>
+</web-app>
