@@ -1,8 +1,0 @@
-A = 1 ;
-a = 2 ;
-numItems = 0 ;
-NUMITEMS = 1 ;
-a += A ;
-print A ;
-print a ;
-print numItems ;

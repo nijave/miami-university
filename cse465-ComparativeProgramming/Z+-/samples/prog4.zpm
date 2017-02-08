@@ -1,3 +1,0 @@
-A = "X" ;
-FOR 4 A += A ; ENDFOR
-PRINT A ;

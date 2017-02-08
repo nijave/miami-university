@@ -1,3 +1,0 @@
-A = "34" ;
-A += "Dogsaregood." ;
-PRINT A ;

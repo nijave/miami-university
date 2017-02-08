@@ -1,4 +1,0 @@
-A = "4" ;
-A += A ;
-FOR 3 A += A ; ENDFOR
-PRINT A ;

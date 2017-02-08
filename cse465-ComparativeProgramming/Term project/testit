@@ -1,0 +1,80 @@
+TESTDATA=`pwd`/data
+
+echo "                    Mail Merge"
+cd mm
+mcs -out:mm.exe *.cs
+
+for file in `ls $TESTDATA/mm/*.tsv | sed s/.tsv//`;
+do
+	echo "DATA FILE = " $file
+	echo "C#"
+	mono mm.exe $file.tsv $file.tmp
+	echo "Python"
+	python3 mm.py $file.tsv $file.tmp
+done
+cd ..
+
+echo "                    Z+-"
+cd zpm 
+javac *.java
+c++ -o zpm -std=c++11 *.cpp
+
+for file in `ls $TESTDATA/zpm/*.zpm`;
+do
+	echo "DATA FILE = " $file
+	echo "Java"
+	java zpm $file | more
+	echo "C++"
+	./zpm $file | more
+done
+echo
+cd ..
+
+echo "                    Nearest Neighbor"
+cd nn 
+c++ -o nn -std=c++11 *.cpp
+
+for file in `ls $TESTDATA/nn/*Prototypes.txt| sed s/Prototypes.txt//`;
+do
+	echo "DATA FILE = " $file
+	echo "C++"
+	./nn ${file}Prototypes.txt ${file}Unknowns.txt | more
+	echo "Python"
+	python3 nn.py ${file}Prototypes.txt ${file}Unknowns.txt | more
+done
+echo
+cd ..
+
+echo "                    Great Uncle"
+cd uncle 
+
+javac *.java
+echo "Java"
+java uncle
+echo "Scheme"
+yes | scheme48 < uncle.scm
+echo "Prolog"
+gplc testHarness.pl --no-top-level
+./testHarness
+echo
+cd ..
+
+
+# CSE 465 students should comment out the following section.
+
+echo "                    Polynomial"
+cd poly
+testFile=$TESTDATA/poly/tests.txt
+numLines=`wc -l $testFile | awk '//{print $1}'`
+numTestCases=$((numLines/2))
+i=1
+while [ $i -le $numTestCases ];
+do
+	firstLine=$(($i*2-1))
+	secondLine=$(($firstLine+1))
+	firstPoly=`head -$firstLine $testFile | tail -1`
+	secondPoly=`head -$secondLine $testFile | tail -1`
+	python3 poly.py $firstPoly $secondPoly
+	i=$((i+1))	
+done
+cd ..
