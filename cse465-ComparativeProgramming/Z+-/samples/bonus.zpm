@@ -1,0 +1,3 @@
+A = "a b c" ;
+A += "w x y z " ;
+PRINT A ;
