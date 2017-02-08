@@ -1,0 +1,44 @@
+1) destination -> path -> cost
+	v	->	v	->	3
+	y	->	y	->	6
+	w	->	w	->	6
+	z	->	z	->	8
+	u	->	vu	->	6
+	t	->	vt	->	7
+
+2) dest Node/via Node/Cost
+	x/x/2
+	v/x/5
+	y/x/5
+	u/x/6
+
+3) TCP wouldn't be redudant since information can also be dropped by intermediate (routing) devices. In addition, TCP also provides flow control to ensure that information is received faster than it can be handled (by the application).
+
+4) 	MAC: 16^12 (2^48)
+	IPv4: 2^32
+	IPv^: 2^128
+	
+5) Host C's adapter will process the frames but it won't send them to the network layer. If they are broadcasts, it will process them and send them to the network layer.
+
+6) An ARP is sent within a broadcast frame since it doesn't know where it is supposed to go. This allows any device to answer the ARP. The response is sent within a specific frame since it only needs to make it's way back to the original sender of the ARP request.
+
+7) 	1010101010 0000
+	10011
+	0011001
+	  10011
+	  010100
+	   10011
+	   0011110
+	     10011
+		 01101
+		  1001 1
+		  0100 10
+		   100 11
+		   000 0100   
+		  ->    0100
+
+8) Host E will not ask the router for help. It will use ARP to obtain the MAC address of host F and send the Ethernet frame to host F's IP address and MAC address. The source IP/MAC are host E's.
+
+9) Host E won't perform an ARP lookup since the destination is in a different subnet. Host E will send the frame to R1's MAC address and host B's IP address. The source IP/MAC will be host E and the source MAC will change to the outgoing interface MAC on R1 when it passes through the router.
+
+10) When switch S1 receives the ARP message, it will resend it out all ports accept the one it came from. At this time, it will also record host A's MAC address/port since it received the broadcast from there. Router R1 will receive the ARP but won't forward it since ARP messages don't propogate across broadcast domains (separate subnets). Host B can send the ARP reply directly back to A since the broadcast will have A's MAC address in it. When the switch receives the response from B it will send it directly to A since it already learned what port that MAC was on when A sent the ARP broadcast.
